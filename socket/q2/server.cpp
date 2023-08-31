@@ -15,6 +15,10 @@ int server_socket;
 std::map<std::string, std::string> database;
 std::mutex database_mutex;
 
+void send_message_to_client(int client_socket, const std::string& message) {
+    write(client_socket, message.c_str(), message.size());
+}
+
 void broadcast(int client, const std::string &message) {
     std::lock_guard<std::mutex> lock(client_mutex);
     for (const auto &entry : client_list) {
@@ -24,7 +28,10 @@ void broadcast(int client, const std::string &message) {
     }
 }
 
-std::string save(const std::string &msg) {
+ 
+
+
+std::string save(const std::string &msg,int client_socket) {
     std::string method = msg.substr(0, 3);
     std::string rem_msg = msg.substr(3);
     
@@ -32,6 +39,7 @@ std::string save(const std::string &msg) {
     std::string value = rem_msg.substr(rem_msg.find('-') + 1);
 
     std::lock_guard<std::mutex> lock(database_mutex);
+
     if (method == "PUT") {
         database[key] = value;
         return "value added successfully..";
@@ -48,6 +56,11 @@ std::string save(const std::string &msg) {
         } else {
             return "Key not present...";
         }
+    }else if(msg=="exit")
+    {
+            send_message_to_client(client_socket,msg);
+            return "";
+
     } else {
         return "request syntax is invalid..";
     }
@@ -60,7 +73,7 @@ void checkTheIncomingMessage(int client, const std::string &name) {
         if (bytes_read > 0) {
             buffer[bytes_read] = '\0';
             std::string msg(buffer);
-            std::string res = save(msg);
+            std::string res = save(msg,client);
             send(client, res.c_str(), res.size(), 0);
             // broadcast(client, name + ": " + msg);
         } else {
