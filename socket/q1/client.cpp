@@ -6,7 +6,7 @@
 #include <thread>
 
 const char *HOST = "127.0.0.1";
-const int PORT = 8080;
+const int PORT = 8888;
 
 void handle_send(int client_socket) {
     while (true) {
@@ -31,6 +31,12 @@ void handle_recv(int client_socket) {
         }
 
         buffer[bytes_read] = '\0';
+        std:: string s(buffer);
+        if(s=="exit")
+        {
+            close(client_socket);
+            exit(0);
+        }
         std::cout << buffer << std::endl;
     }
 }
