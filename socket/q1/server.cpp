@@ -38,7 +38,14 @@ void listen_for_messages(int client_socket, const std::string& username) {
         
         buffer[bytes_read] = '\0';
         std::string message(buffer);
-       
+        std::cout << message << std::endl;
+         if(message=="[CLIENT] exit")
+         {
+            std::string mes="exit";
+            send_message_to_client(client_socket,mes);
+            close(client_socket);
+            exit;
+         }
         if (!message.empty()) {
             std::string final_msg = username + "~" + message;
             send_messages_to_all(final_msg,username);
