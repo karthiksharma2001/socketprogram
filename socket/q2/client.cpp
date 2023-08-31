@@ -30,6 +30,13 @@ void handle_recv(int client_socket) {
         }
 
         buffer[bytes_read] = '\0';
+         std:: string s(buffer);
+        
+        if(s=="exit")
+        {
+            close(client_socket);
+            exit(1);
+        }
         std::cout << buffer << std::endl;
     }
 }
