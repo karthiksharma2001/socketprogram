@@ -6,21 +6,22 @@
 #include <map>
 #include <thread>
 #include <mutex>
+using namespace std;
 
-std::map<int,std::string > client_list;
-std::mutex client_mutex;
+map<int,string > client_list;
+mutex client_mutex;
 
 int server_socket;
 
-std::map<std::string, std::string> database;
-std::mutex database_mutex;
+map<string, string> database;
+mutex database_mutex;
 
-void send_message_to_client(int client_socket, const std::string& message) {
+void send_message_to_client(int client_socket, const string& message) {
     write(client_socket, message.c_str(), message.size());
 }
 
-void broadcast(int client, const std::string &message) {
-    std::lock_guard<std::mutex> lock(client_mutex);
+void broadcast(int client, const string &message) {
+    lock_guard<mutex> lock(client_mutex);
     for (const auto &entry : client_list) {
         if (entry.first != client) {
             send(entry.first, message.c_str(), message.size(), 0);
@@ -28,17 +29,14 @@ void broadcast(int client, const std::string &message) {
     }
 }
 
- 
-
-
-std::string save(const std::string &msg,int client_socket) {
-    std::string method = msg.substr(0, 3);
-    std::string rem_msg = msg.substr(3);
+string save(const string &msg,int client_socket) {
+    string method = msg.substr(0, 3);
+    string rem_msg = msg.substr(3);
     
-    std::string key = rem_msg.substr(0, rem_msg.find('-'));
-    std::string value = rem_msg.substr(rem_msg.find('-') + 1);
+    string key = rem_msg.substr(0, rem_msg.find('-'));
+    string value = rem_msg.substr(rem_msg.find('-') + 1);
 
-    std::lock_guard<std::mutex> lock(database_mutex);
+    lock_guard<mutex> lock(database_mutex);
 
     if (method == "PUT") {
         database[key] = value;
@@ -66,14 +64,14 @@ std::string save(const std::string &msg,int client_socket) {
     }
 }
 
-void checkTheIncomingMessage(int client, const std::string &name) {
+void checkTheIncomingMessage(int client, const string &name) {
     while (true) {
         char buffer[2048];
         int bytes_read = recv(client, buffer, sizeof(buffer), 0);
         if (bytes_read > 0) {
             buffer[bytes_read] = '\0';
-            std::string msg(buffer);
-            std::string res = save(msg,client);
+            string msg(buffer);
+            string res = save(msg,client);
             send(client, res.c_str(), res.size(), 0);
             // broadcast(client, name + ": " + msg);
         } else {
@@ -87,13 +85,13 @@ void handleClient(int client) {
     int bytes_read = recv(client, buffer, sizeof(buffer), 0);
     if (bytes_read > 0) {
         buffer[bytes_read] = '\0';
-        std::string name(buffer);
+        string name(buffer);
         if (!name.empty()) {
             {
-                std::lock_guard<std::mutex> lock(client_mutex);
+                lock_guard<mutex> lock(client_mutex);
                 client_list[client] = name;
             }
-            std::string joiningMsg = name + " joined the chat";
+            string joiningMsg = name + " joined the chat";
             broadcast(client, joiningMsg);
             checkTheIncomingMessage(client, name);
         }
@@ -131,7 +129,7 @@ int main() {
             perror("accept");
             continue;
         }
-        std::thread(handleClient, client_socket).detach();
+        thread(handleClient, client_socket).detach();
     }
 
     close(server_socket);
