@@ -5,14 +5,16 @@
 #include <unistd.h>
 #include <thread>
 
+using namespace std;
+
 const char *HOST = "127.0.0.1";
 const int PORT = 8080;
 
 void handle_send(int client_socket) {
     while (true) {
-        std::string data;
-        std::cout << "Enter message to send: ";
-        std::getline(std::cin, data);
+        string data;
+        cout << "Enter message to send: ";
+        getline(cin, data);
 
         if (!data.empty()) {
             write(client_socket, data.c_str(), data.size());
@@ -25,19 +27,19 @@ void handle_recv(int client_socket) {
         char buffer[2048];
         int bytes_read = read(client_socket, buffer, sizeof(buffer));
         if (bytes_read <= 0) {
-            std::cout << "Connection closed." << std::endl;
+            cout << "Connection closed." << endl;
             break;
         }
 
         buffer[bytes_read] = '\0';
-         std:: string s(buffer);
+          string s(buffer);
         
         if(s=="exit")
         {
             close(client_socket);
             exit(1);
         }
-        std::cout << buffer << std::endl;
+        cout << buffer << endl;
     }
 }
 
@@ -62,20 +64,20 @@ int main() {
         return 1;
     }
 
-    std::string username;
-    std::cout << "Enter username: ";
-    std::getline(std::cin, username);
+    string username;
+    cout << "Enter username: ";
+    getline(cin, username);
 
     if (!username.empty()) {
         write(client_socket, username.c_str(), username.size());
     } else {
-        std::cout << "Invalid username. Username cannot be empty." << std::endl;
+        cout << "Invalid username. Username cannot be empty." << endl;
         close(client_socket);
         return 1;
     }
 
-    std::thread send_thread(handle_send, client_socket);
-    std::thread recv_thread(handle_recv, client_socket);
+    thread send_thread(handle_send, client_socket);
+    thread recv_thread(handle_recv, client_socket);
 
     send_thread.join();
     recv_thread.join();
