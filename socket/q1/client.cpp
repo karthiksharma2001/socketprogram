@@ -6,7 +6,7 @@
 #include <thread>
 
 const char *HOST = "127.0.0.1";
-const int PORT = 8888;
+const int PORT = 8080;
 
 void handle_send(int client_socket) {
     while (true) {
